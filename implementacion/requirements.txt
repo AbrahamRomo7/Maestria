@@ -1,0 +1,8 @@
+pandas
+numpy
+sqlalchemy
+psycopg2
+python-dotenv
+openpyxl
+scikit-learn
+prophet

@@ -1,56 +1,308 @@
-# Sistema de Prediccion de Tendencias de Importaciones (CIF)
+# Sistema Predictivo de Importaciones con Inteligencia Artificial
 
-Este repositorio contiene el prototipo final de inteligencia artificial diseñado para el analisis y pronostico del valor CIF en importaciones. El sistema integra una base de datos PostgreSQL, un proceso ETL automatizado y un modelo predictivo basado en Bosques Aleatorios (Random Forest) optimizado para series temporales.
+Proyecto de análisis predictivo orientado a la estimación de demanda de importaciones utilizando técnicas de ETL, almacenamiento en PostgreSQL, modelos de inteligencia artificial y visualización en Power BI.
 
-## 1. Descripcion del Proyecto
+---
 
-El objetivo de este proyecto es transformar datos crudos de importaciones almacenados en un servidor local de PostgreSQL en proyecciones estrategicas de valor CIF para los proximos 12 meses. El modelo utiliza tecnicas de aprendizaje supervisado para identificar patrones historicos, estacionalidad y tendencias de mercado.
+# Arquitectura del Proyecto
 
-## 2. Instrucciones de Ejecucion
+El sistema sigue una arquitectura basada en pipeline:
 
-### Configuracion de Variables de Entorno
-Antes de iniciar, es obligatorio crear un archivo denominado `.env` en la raiz del proyecto con las siguientes claves:
+```text
+Datos Externos → ETL → PostgreSQL → Modelos Predictivos → Power BI
+```
 
+---
+
+# Tecnologías Utilizadas
+
+| Tecnología | Uso |
+|---|---|
+| Python | Desarrollo del pipeline |
+| Pandas | Transformación y análisis de datos |
+| PostgreSQL | Almacenamiento |
+| SQLAlchemy | Conexión a base de datos |
+| Prophet | Predicción de series temporales |
+| Scikit-learn | Métricas y validación |
+| Power BI | Visualización |
+| OpenPyXL | Lectura de Excel |
+
+---
+
+# Estructura del Proyecto
+
+```text
+tesis_importaciones_ai/
+│
+├── config/
+│   ├── settings.py
+│   └── paths.py
+│
+├── database/
+│   └── connection.py
+│
+├── etl/
+│   ├── extract.py
+│   ├── transform.py
+│   ├── load.py
+│   └── etl_pipeline.py
+│
+├── models/
+│   ├── evaluate_model.py
+│   ├── train_model.py
+│   └── forecast.py
+│
+├── data/
+│   ├── raw/
+│   │   └── data_mock.xlsx
+│   │
+│   ├── processed/
+│   │
+│   └── predictions/
+│       ├── metricas_modelo.csv
+│       └── predicciones_12_meses.csv
+│
+├── outputs/
+│
+├── main.py
+├── requirements.txt
+├── .env
+└── README.md
+```
+
+---
+
+# Flujo del Pipeline
+
+## 1. Extracción de Datos
+
+Se leen datos desde el archivo:
+
+```text
+data/raw/data_mock.xlsx
+```
+
+---
+
+## 2. Transformación
+
+Durante el proceso ETL se realizan:
+
+- limpieza de valores nulos,
+- eliminación de duplicados,
+- conversión numérica,
+- normalización de texto,
+- generación de fechas,
+- validación de columnas.
+
+---
+
+## 3. Carga a PostgreSQL
+
+Los datos procesados se almacenan en la tabla:
+
+```sql
+importaciones
+```
+
+---
+
+## 4. Entrenamiento del Modelo
+
+El sistema:
+
+- agrupa importaciones por partida arancelaria,
+- genera series temporales mensuales,
+- aplica Prophet,
+- utiliza validación temporal con TimeSeriesSplit,
+- calcula métricas:
+  - MAE
+  - RMSE
+  - MAPE
+
+---
+
+## 5. Generación de Predicciones
+
+El modelo proyecta:
+
+```text
+12 meses futuros
+```
+
+por cada partida arancelaria válida.
+
+---
+
+# Métricas Utilizadas
+
+## MAE
+
+Error absoluto promedio.
+
+```math
+MAE = \frac{1}{n}\sum |y_{real} - y_{predicho}|
+```
+
+---
+
+## RMSE
+
+Penaliza errores grandes.
+
+```math
+RMSE = \sqrt{\frac{1}{n}\sum (y_{real} - y_{predicho})^2}
+```
+
+---
+
+## MAPE
+
+Error porcentual promedio.
+
+```math
+MAPE = \frac{100}{n}\sum \left|\frac{y_{real} - y_{predicho}}{y_{real}}\right|
+```
+
+---
+
+# Requisitos Previos
+
+## Instalar PostgreSQL
+
+Crear una base de datos para el proyecto.
+
+---
+
+# Configuración del Archivo `.env`
+
+Crear un archivo `.env` en la raíz del proyecto:
+
+```env
 DB_USER=tu_usuario
-DB_PASSWORD=tu_contraseña
+DB_PASSWORD=tu_password
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=nombre_de_tu_bd
+DB_NAME=nombre_base_datos
+```
 
-### Paso a Paso para la Ejecucion
-1. Asegurarse de que el servicio de PostgreSQL este activo y con la tabla 'importaciones' cargada.
-2. Abrir una terminal en la carpeta del proyecto.
-3. Instalar las dependencias (ver seccion 3).
-4. Ejecutar el script principal:
-   python predictor_importaciones.py
+---
 
-El sistema generara automaticamente tres archivos:
-- modelo_final_importaciones.pkl (Binario del modelo)
-- analisis_estadistico.csv (Metricas de desempeño)
-- proyeccion_12_meses.csv (Predicciones futuras)
+# Instalación
 
-## 3. Dependencias y Versiones
+## 1. Crear entorno virtual
 
-El proyecto fue desarrollado y probado con las siguientes versiones de librerias:
+### Windows
 
-- Python: 3.9.x
-- pandas: 2.1.0
-- numpy: 1.24.3
-- scikit-learn: 1.3.0
-- sqlalchemy: 2.0.20
-- psycopg2-binary: 2.9.7
-- python-dotenv: 1.0.0
-- joblib: 1.3.2
+```bash
+python -m venv venv
+```
 
-## 4. Registro de Cambios (Bitacora)
+Activar:
 
-### Version 1.0.0 (Prototipo Inicial)
-- Implementacion de conexion basica a base de datos.
-- Modelo inicial de Random Forest con division de datos simple (80/20).
-- Script de preprocesamiento lineal.
+```bash
+venv\Scripts\activate
+```
 
-### Version 2.0.0 (Optimizacion y Ajuste Tecnico) - ACTUAL
-- Ajuste de Hiperparametros: Implementacion de RandomizedSearchCV para optimizar profundidad y estimadores del modelo.
-- Validacion Estadistica: Sustitucion de split simple por TimeSeriesSplit (Validacion Cruzada Temporal).
-- Ingenieria de Caracteristicas: Adicion de variables de tendencia (trend) y calculo dinamico de rezagos (lags).
-- Robustez del Pipeline: Inclusion de escalamiento de datos (StandardScaler) dentro del flujo de entrenamiento.
+---
+
+## 2. Instalar dependencias
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+# Ejecución del Pipeline
+
+Ejecutar:
+
+```bash
+python main.py
+```
+
+---
+
+# Salidas Generadas
+
+## Métricas
+
+```text
+data/predictions/metricas_modelo.csv
+```
+
+Contiene:
+
+- MAE
+- RMSE
+- MAPE
+
+por partida arancelaria.
+
+---
+
+## Predicciones
+
+```text
+data/predictions/predicciones_12_meses.csv
+```
+
+Contiene:
+
+- fecha,
+- predicción,
+- partida arancelaria.
+
+---
+
+# Integración con Power BI
+
+Power BI puede conectarse directamente a:
+
+- PostgreSQL,
+- archivos CSV generados,
+- o tablas exportadas.
+
+Se recomienda implementar dashboards para:
+
+- tendencias CIF,
+- análisis por país,
+- análisis por partida arancelaria,
+- proyección futura de demanda.
+
+---
+
+# Validación del Modelo
+
+El proyecto utiliza:
+
+```text
+TimeSeriesSplit
+```
+
+para garantizar:
+
+- validación cronológica,
+- reducción de sobreajuste,
+- evaluación sobre datos no vistos.
+
+---
+
+# Objetivo del Proyecto
+
+Desarrollar un sistema predictivo que permita:
+
+- estimar demanda de importaciones,
+- mejorar planificación,
+- apoyar toma de decisiones,
+- reducir riesgos operativos,
+- optimizar gestión empresarial.
+
+---
+
+# Autor
+
+Abraham Romo-Anthony Reyna
+
+Proyecto académico de Inteligencia Artificial aplicada a análisis predictivo de importaciones.
